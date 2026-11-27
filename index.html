@@ -3,28 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>JEKUNRL — Zaki | Interactive Portfolio</title>
+  <title>JEKUNRL // Zaki — Spatial Interactive Portfolio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --bg-base: #07080c;
-      --glass-bg: rgba(255, 255, 255, 0.035);
-      --glass-bg-hover: rgba(255, 255, 255, 0.065);
+      --bg-base: #050609;
+      --glass-surface: rgba(255, 255, 255, 0.032);
+      --glass-elevated: rgba(16, 19, 28, 0.72);
       --glass-border: rgba(255, 255, 255, 0.09);
-      --glass-highlight: rgba(255, 255, 255, 0.18);
-      --text-primary: #f5f6f8;
-      --text-secondary: #9ca3af;
-      --text-muted: #6b7280;
+      --glass-highlight: rgba(255, 255, 255, 0.22);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
       --accent: #38bdf8;
-      --accent-tint: rgba(56, 189, 248, 0.16);
-      --orb-1: rgba(56, 189, 248, 0.22);
-      --orb-2: rgba(99, 102, 241, 0.18);
+      --accent-rgb: 56, 189, 248;
       --font-sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-serif: 'Instrument Serif', Georgia, serif;
-      --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+      --font-mono: 'JetBrains Mono', monospace;
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     * {
@@ -47,137 +46,171 @@
       user-select: none;
     }
 
-    /* Subtle Noise Texture Overlay */
-    .noise-overlay {
+    /* Interactive Particle Canvas */
+    #spatialCanvas {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      pointer-events: none;
+    }
+
+    /* Ambient Glow & Grain */
+    .ambient-glow {
+      position: fixed;
+      inset: 0;
+      z-index: -3;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 18% 20%, rgba(var(--accent-rgb), 0.16), transparent 45%),
+        radial-gradient(circle at 82% 78%, rgba(99, 102, 241, 0.14), transparent 50%);
+      transition: background 0.5s ease;
+    }
+
+    .noise-layer {
       position: fixed;
       inset: 0;
       z-index: -1;
       pointer-events: none;
-      opacity: 0.032;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     }
 
-    /* Ambient Floating Light Orbs behind the glass */
-    .ambient-canvas {
+    /* Boot Loader Screen */
+    .boot-screen {
       position: fixed;
       inset: 0;
-      z-index: -2;
-      overflow: hidden;
+      z-index: 100;
+      background: var(--bg-base);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      transition: opacity 0.6s var(--ease-out-expo), visibility 0.6s;
+    }
+
+    .boot-screen.done {
+      opacity: 0;
+      visibility: hidden;
       pointer-events: none;
-      transition: opacity 0.4s ease;
     }
 
-    .ambient-canvas.dimmed {
-      opacity: 0.2;
+    .boot-logo {
+      font-weight: 700;
+      font-size: 1.4rem;
+      letter-spacing: 0.2em;
     }
 
-    .orb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(95px);
-      animation: floatOrb 18s ease-in-out infinite alternate;
-      transition: background 0.5s ease;
+    .boot-bar-wrap {
+      width: 220px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 99px;
+      overflow: hidden;
     }
 
-    .orb-1 {
-      width: 440px;
-      height: 440px;
-      background: var(--orb-1);
-      top: -80px;
-      left: -60px;
+    .boot-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      box-shadow: 0 0 14px var(--accent);
+      transition: width 0.25s ease;
     }
 
-    .orb-2 {
-      width: 500px;
-      height: 500px;
-      background: var(--orb-2);
-      bottom: -120px;
-      right: -80px;
-      animation-delay: -6s;
+    .boot-status {
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      color: var(--text-secondary);
     }
 
-    .orb-3 {
-      width: 300px;
-      height: 300px;
-      background: rgba(255, 255, 255, 0.05);
-      top: 42%;
-      left: 45%;
-      animation-duration: 24s;
-    }
-
-    @keyframes floatOrb {
-      0% { transform: translate(0, 0) scale(1); }
-      100% { transform: translate(45px, 35px) scale(1.08); }
-    }
-
-    /* Reusable Frosted Glass Surface */
-    .glass-surface {
-      background: linear-gradient(145deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0.018) 100%);
-      backdrop-filter: blur(24px) saturate(160%);
-      -webkit-backdrop-filter: blur(24px) saturate(160%);
+    /* Glass Material System */
+    .glass {
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.015) 100%);
+      backdrop-filter: blur(24px) saturate(165%);
+      -webkit-backdrop-filter: blur(24px) saturate(165%);
       border: 1px solid var(--glass-border);
       box-shadow:
         inset 0 1px 0 0 var(--glass-highlight),
-        0 20px 40px -15px rgba(0, 0, 0, 0.55);
+        0 24px 48px -16px rgba(0, 0, 0, 0.65);
     }
 
-    /* Top Floating HUD Bar */
-    .hud-wrapper {
-      padding: 20px 24px 0;
-      max-width: 1080px;
+    /* Top HUD */
+    .hud-container {
+      max-width: 1120px;
       width: 100%;
       margin: 0 auto;
+      padding: 20px 24px 0;
     }
 
-    .hud-top {
+    .hud-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 12px 20px;
-      border-radius: 16px;
-      font-size: 0.84rem;
+      border-radius: 18px;
     }
 
-    .hud-brand {
+    .brand-cluster {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       font-weight: 600;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.05em;
+      font-size: 0.9rem;
     }
 
-    .live-dot {
-      width: 8px;
-      height: 8px;
+    .pulse-ring {
+      width: 9px;
+      height: 9px;
       border-radius: 50%;
       background: var(--accent);
       box-shadow: 0 0 12px var(--accent);
       transition: background 0.3s, box-shadow 0.3s;
     }
 
-    .hud-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    .hud-clock {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      padding-left: 10px;
+      border-left: 1px solid var(--glass-border);
     }
 
-    .pill-btn {
-      background: rgba(255, 255, 255, 0.05);
+    .hud-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hud-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.045);
       border: 1px solid var(--glass-border);
       color: var(--text-secondary);
       font-family: var(--font-sans);
       font-size: 0.78rem;
       font-weight: 500;
-      padding: 6px 14px;
+      padding: 6px 13px;
       border-radius: 999px;
       cursor: pointer;
-      transition: all 0.25s var(--ease-spring);
+      transition: all 0.25s var(--ease-out-expo);
     }
 
-    .pill-btn:hover {
+    .hud-btn:hover {
       color: var(--text-primary);
       background: rgba(255, 255, 255, 0.1);
       border-color: var(--glass-highlight);
+    }
+
+    .kbd-badge {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      padding: 1px 6px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-primary);
     }
 
     /* Main Stage */
@@ -186,23 +219,23 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 32px 24px;
-      max-width: 1080px;
+      max-width: 1120px;
       width: 100%;
       margin: 0 auto;
+      padding: 28px 24px;
     }
 
-    /* 0. Main Menu Layout */
-    .main-menu-view {
+    /* 0. Main Menu */
+    .main-menu {
       width: 100%;
       display: grid;
       grid-template-columns: 1.15fr 0.95fr;
-      gap: 52px;
+      gap: 56px;
       align-items: center;
-      animation: viewReveal 0.5s var(--ease-spring);
+      animation: viewEnter 0.6s var(--ease-out-expo);
     }
 
-    .eyebrow-pill {
+    .status-chip {
       display: inline-flex;
       align-items: center;
       gap: 8px;
@@ -210,15 +243,15 @@
       border-radius: 999px;
       font-size: 0.8rem;
       color: var(--text-secondary);
-      margin-bottom: 20px;
+      margin-bottom: 22px;
     }
 
     .hero-title {
-      font-size: clamp(3rem, 6.5vw, 4.8rem);
+      font-size: clamp(3.1rem, 6.5vw, 5rem);
       font-weight: 700;
-      line-height: 1.02;
-      letter-spacing: -0.035em;
-      margin-bottom: 18px;
+      line-height: 1.01;
+      letter-spacing: -0.04em;
+      margin-bottom: 20px;
     }
 
     .hero-title span {
@@ -230,108 +263,130 @@
       transition: color 0.3s ease;
     }
 
-    .hero-desc {
+    .hero-copy {
       color: var(--text-secondary);
-      font-size: 1.02rem;
+      font-size: 1.03rem;
       line-height: 1.65;
-      max-width: 440px;
+      max-width: 450px;
+      margin-bottom: 28px;
     }
 
-    /* Glass Game Menu Buttons */
+    .quick-metrics {
+      display: flex;
+      gap: 24px;
+    }
+
+    .metric-box span {
+      display: block;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .metric-box small {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    /* 3D Tilt Menu Cards */
     .menu-stack {
       display: flex;
       flex-direction: column;
       gap: 14px;
+      perspective: 1000px;
     }
 
-    .menu-card-btn {
+    .tilt-card {
+      transform-style: preserve-3d;
+      will-change: transform;
       position: relative;
+      overflow: hidden;
+    }
+
+    .tilt-card .glare {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(255, 255, 255, 0.16), transparent 60%);
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .tilt-card:hover .glare,
+    .tilt-card.active .glare {
+      opacity: 1;
+    }
+
+    .menu-btn {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 18px 24px;
-      border-radius: 18px;
+      padding: 19px 24px;
+      border-radius: 20px;
       color: var(--text-primary);
       font-family: var(--font-sans);
       cursor: pointer;
       text-align: left;
-      overflow: hidden;
-      transition: transform 0.3s var(--ease-spring), border-color 0.25s ease, background 0.25s ease;
+      transition: border-color 0.25s ease, background 0.25s ease;
     }
 
-    .menu-card-btn::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.12), transparent 65%);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      pointer-events: none;
-    }
-
-    .menu-card-btn:hover::before,
-    .menu-card-btn.active::before {
-      opacity: 1;
-    }
-
-    .menu-card-btn:hover,
-    .menu-card-btn.active {
-      transform: translateX(8px);
+    .menu-btn.active,
+    .menu-btn:hover {
       border-color: var(--glass-highlight);
-      background: linear-gradient(145deg, rgba(255, 255, 255, 0.09) 0%, var(--accent-tint) 100%);
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.1) 0%, rgba(var(--accent-rgb), 0.16) 100%);
     }
 
     .menu-left {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 15px;
     }
 
-    .menu-index {
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: var(--accent);
-      background: rgba(255, 255, 255, 0.06);
-      width: 28px;
-      height: 28px;
-      border-radius: 8px;
+    .menu-num {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 500;
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--accent);
       transition: all 0.25s ease;
     }
 
-    .menu-card-btn.active .menu-index,
-    .menu-card-btn:hover .menu-index {
+    .menu-btn.active .menu-num,
+    .menu-btn:hover .menu-num {
       background: var(--accent);
-      color: #06070a;
+      color: #050609;
     }
 
-    .menu-label {
-      font-size: 1.08rem;
+    .menu-name {
+      font-size: 1.1rem;
       font-weight: 600;
-      letter-spacing: -0.01em;
     }
 
-    .menu-sub {
+    .menu-meta {
       font-size: 0.82rem;
       color: var(--text-secondary);
     }
 
-    /* Sub-Screen Glass Panels */
-    .screen-panel {
+    /* Sub-Panels */
+    .panel-view {
       display: none;
       width: 100%;
-      border-radius: 26px;
+      border-radius: 28px;
       padding: 34px;
-      animation: viewReveal 0.38s var(--ease-spring);
+      animation: viewEnter 0.4s var(--ease-out-expo);
     }
 
-    .screen-panel.active {
+    .panel-view.active {
       display: block;
     }
 
-    .panel-top {
+    .panel-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -340,86 +395,82 @@
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-    .panel-heading h2 {
-      font-size: 1.45rem;
+    .panel-header h2 {
+      font-size: 1.5rem;
       font-weight: 600;
       letter-spacing: -0.02em;
     }
 
-    .panel-heading p {
+    .panel-header p {
       font-size: 0.86rem;
       color: var(--text-secondary);
       margin-top: 2px;
     }
 
-    .btn-back {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+    .btn-return {
       background: rgba(255, 255, 255, 0.06);
       border: 1px solid var(--glass-border);
       color: var(--text-primary);
       font-family: var(--font-sans);
       font-size: 0.84rem;
       font-weight: 500;
-      padding: 9px 16px;
+      padding: 9px 18px;
       border-radius: 12px;
       cursor: pointer;
       transition: all 0.2s ease;
     }
 
-    .btn-back:hover {
+    .btn-return:hover {
       background: rgba(255, 255, 255, 0.12);
       border-color: var(--glass-highlight);
     }
 
-    /* 1. START (Profile & Stats) */
-    .profile-layout {
+    /* 1. Start / Profile */
+    .profile-grid {
       display: grid;
       grid-template-columns: 1fr 1.15fr;
       gap: 24px;
     }
 
-    .inner-glass {
+    .sub-glass {
       background: rgba(255, 255, 255, 0.025);
       border: 1px solid rgba(255, 255, 255, 0.07);
-      border-radius: 20px;
-      padding: 24px;
+      border-radius: 22px;
+      padding: 26px;
       box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
     }
 
-    .role-tag {
+    .pill-accent {
       display: inline-block;
       font-size: 0.76rem;
       font-weight: 500;
       color: var(--accent);
-      background: var(--accent-tint);
+      background: rgba(var(--accent-rgb), 0.15);
       padding: 4px 12px;
       border-radius: 999px;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
 
-    .player-name {
-      font-size: 1.7rem;
+    .sub-glass h3 {
+      font-size: 1.75rem;
       font-weight: 700;
-      letter-spacing: -0.02em;
       margin-bottom: 10px;
     }
 
-    .player-bio {
+    .sub-glass p {
       color: var(--text-secondary);
       font-size: 0.94rem;
       line-height: 1.65;
       margin-bottom: 20px;
     }
 
-    .meta-chips {
+    .tags-wrap {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
     }
 
-    .chip {
+    .tag-pill {
       font-size: 0.78rem;
       color: var(--text-secondary);
       background: rgba(255, 255, 255, 0.04);
@@ -428,15 +479,15 @@
       border-radius: 999px;
     }
 
-    .skill-item {
+    .stat-block {
       margin-bottom: 18px;
     }
 
-    .skill-item:last-child {
+    .stat-block:last-child {
       margin-bottom: 0;
     }
 
-    .skill-head {
+    .stat-info {
       display: flex;
       justify-content: space-between;
       font-size: 0.86rem;
@@ -444,52 +495,51 @@
       margin-bottom: 8px;
     }
 
-    .skill-head span:last-child {
+    .stat-info span:last-child {
+      font-family: var(--font-mono);
       color: var(--text-secondary);
     }
 
-    .progress-track {
+    .bar-bg {
       height: 8px;
       background: rgba(255, 255, 255, 0.06);
       border-radius: 999px;
       overflow: hidden;
-      padding: 1px;
     }
 
-    .progress-fill {
+    .bar-val {
       height: 100%;
-      background: linear-gradient(90deg, var(--accent), rgba(255, 255, 255, 0.85));
+      background: linear-gradient(90deg, var(--accent), rgba(255, 255, 255, 0.9));
       border-radius: 999px;
-      transition: background 0.3s ease;
     }
 
-    /* 2. LOAD GAME (Save Slots / Projects) */
+    /* 2. Load Game / Save Slots */
     .slots-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 18px;
+      perspective: 1000px;
     }
 
-    .slot-card {
-      position: relative;
+    .slot-item {
       background: rgba(255, 255, 255, 0.025);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 20px;
+      border-radius: 22px;
       padding: 22px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
-      transition: transform 0.3s var(--ease-spring), border-color 0.25s ease, background 0.25s ease;
+      cursor: pointer;
+      transition: border-color 0.25s ease, background 0.25s ease;
     }
 
-    .slot-card:hover {
-      transform: translateY(-4px);
+    .slot-item:hover {
       border-color: var(--glass-highlight);
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.055);
     }
 
-    .slot-header {
+    .slot-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -497,67 +547,57 @@
       font-size: 0.76rem;
     }
 
-    .slot-badge {
+    .slot-id {
+      font-family: var(--font-mono);
       color: var(--accent);
-      font-weight: 600;
     }
 
-    .slot-status {
+    .slot-badge {
       color: var(--text-secondary);
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.06);
       padding: 3px 10px;
       border-radius: 999px;
     }
 
-    .slot-card h3 {
+    .slot-item h3 {
       font-size: 1.18rem;
-      font-weight: 600;
       margin-bottom: 8px;
     }
 
-    .slot-card p {
-      font-size: 0.9rem;
+    .slot-item p {
+      font-size: 0.88rem;
       color: var(--text-secondary);
-      line-height: 1.58;
+      line-height: 1.55;
       margin-bottom: 18px;
     }
 
-    .slot-bottom {
+    .slot-foot {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding-top: 14px;
       border-top: 1px solid rgba(255, 255, 255, 0.07);
-      font-size: 0.8rem;
-      color: var(--text-secondary);
+      font-size: 0.78rem;
+      color: var(--text-muted);
     }
 
-    .launch-btn {
-      text-decoration: none;
+    .inspect-pill {
       color: var(--text-primary);
       background: rgba(255, 255, 255, 0.08);
-      border: 1px solid var(--glass-border);
-      padding: 6px 14px;
-      border-radius: 10px;
+      padding: 5px 12px;
+      border-radius: 9px;
       font-weight: 500;
-      transition: all 0.2s ease;
     }
 
-    .launch-btn:hover {
-      background: var(--accent);
-      color: #06070a;
-      border-color: var(--accent);
-    }
-
-    /* 3. SETTINGS */
-    .settings-stack {
+    /* 3. Settings */
+    .settings-list {
       display: flex;
       flex-direction: column;
       gap: 14px;
-      max-width: 580px;
+      max-width: 600px;
     }
 
-    .setting-row {
+    .setting-card {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -567,18 +607,17 @@
       border: 1px solid rgba(255, 255, 255, 0.07);
     }
 
-    .setting-text h4 {
+    .setting-card h4 {
       font-size: 0.98rem;
-      font-weight: 600;
       margin-bottom: 3px;
     }
 
-    .setting-text p {
-      font-size: 0.83rem;
+    .setting-card p {
+      font-size: 0.82rem;
       color: var(--text-secondary);
     }
 
-    .swatches {
+    .swatch-row {
       display: flex;
       gap: 10px;
     }
@@ -597,41 +636,43 @@
       transform: scale(1.18);
     }
 
-    /* 4. CREDITS */
-    .credits-center {
+    /* 4. Credits */
+    .credits-wrap {
       text-align: center;
       max-width: 520px;
       margin: 0 auto;
-      padding: 12px 0;
+      padding: 10px 0;
     }
 
-    .credit-group {
+    .credit-block {
       margin-bottom: 22px;
     }
 
-    .credit-label {
-      font-size: 0.76rem;
+    .credit-block span {
+      display: block;
+      font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.12em;
       color: var(--accent);
       margin-bottom: 4px;
     }
 
-    .credit-value {
+    .credit-block strong {
       font-size: 1.15rem;
-      font-weight: 600;
     }
 
-    .contact-pills {
+    .comms-row {
       display: flex;
       justify-content: center;
       flex-wrap: wrap;
       gap: 12px;
-      margin-top: 28px;
+      margin-top: 26px;
     }
 
-    .contact-pills a {
+    .comms-row a,
+    .comms-row button {
       text-decoration: none;
+      font-family: var(--font-sans);
       color: var(--text-primary);
       font-size: 0.88rem;
       font-weight: 500;
@@ -639,18 +680,166 @@
       border-radius: 14px;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--glass-border);
-      transition: all 0.25s var(--ease-spring);
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
 
-    .contact-pills a:hover {
-      transform: translateY(-2px);
-      background: rgba(255, 255, 255, 0.1);
+    .comms-row a:hover,
+    .comms-row button:hover {
+      background: rgba(255, 255, 255, 0.11);
       border-color: var(--glass-highlight);
+      transform: translateY(-2px);
     }
 
-    /* Bottom Footer */
+    /* Project Inspector Modal & Command Palette Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      background: rgba(3, 4, 7, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeOverlay 0.22s ease;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .inspector-modal {
+      width: 100%;
+      max-width: 620px;
+      border-radius: 26px;
+      padding: 30px;
+      position: relative;
+      animation: modalPop 0.3s var(--ease-out-expo);
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+
+    .modal-title {
+      font-size: 1.55rem;
+      font-weight: 700;
+      margin-top: 6px;
+    }
+
+    .visual-blueprint {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 20px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .blueprint-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 7px 0;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.07);
+    }
+
+    .blueprint-row:last-child {
+      border-bottom: none;
+    }
+
+    .blueprint-row strong {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .modal-desc {
+      color: var(--text-secondary);
+      font-size: 0.94rem;
+      line-height: 1.65;
+      margin-bottom: 24px;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .btn-primary-glass {
+      text-decoration: none;
+      background: var(--accent);
+      color: #050609;
+      font-weight: 600;
+      font-size: 0.88rem;
+      padding: 10px 20px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .btn-primary-glass:hover {
+      transform: translateY(-2px);
+      opacity: 0.92;
+    }
+
+    /* Command Palette */
+    .cmd-box {
+      width: 100%;
+      max-width: 500px;
+      border-radius: 22px;
+      overflow: hidden;
+      animation: modalPop 0.25s var(--ease-out-expo);
+    }
+
+    .cmd-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+      padding: 18px 22px;
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .cmd-list {
+      max-height: 280px;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    .cmd-option {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.15s ease;
+    }
+
+    .cmd-option:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .cmd-option span:last-child {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    /* Footer */
     .hud-footer {
-      max-width: 1080px;
+      max-width: 1120px;
       width: 100%;
       margin: 0 auto;
       padding: 16px 24px 24px;
@@ -661,21 +850,31 @@
       color: var(--text-muted);
     }
 
-    @keyframes viewReveal {
-      from { opacity: 0; transform: translateY(12px) scale(0.99); }
+    @keyframes viewEnter {
+      from { opacity: 0; transform: translateY(14px) scale(0.99); }
       to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
+    @keyframes modalPop {
+      from { opacity: 0; transform: scale(0.95) translateY(8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    @keyframes fadeOverlay {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
     @media (max-width: 820px) {
-      .main-menu-view {
+      .main-menu {
         grid-template-columns: 1fr;
         gap: 32px;
       }
-      .profile-layout {
+      .profile-grid {
         grid-template-columns: 1fr;
       }
-      .screen-panel {
-        padding: 24px 20px;
+      .hud-clock {
+        display: none;
       }
       .hud-footer {
         flex-direction: column;
@@ -686,328 +885,498 @@
   </style>
 </head>
 <body>
-  <div class="ambient-canvas" id="ambientCanvas">
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
-    <div class="orb orb-3"></div>
+  <!-- Boot Screen -->
+  <div class="boot-screen" id="bootScreen">
+    <div class="boot-logo">JEKUNRL</div>
+    <div class="boot-bar-wrap"><div class="boot-bar-fill" id="bootFill"></div></div>
+    <div class="boot-status" id="bootText">Initializing Spatial UI...</div>
   </div>
-  <div class="noise-overlay"></div>
 
-  <!-- Floating Glass Header -->
-  <div class="hud-wrapper">
-    <header class="hud-top glass-surface">
-      <div class="hud-brand">
-        <span class="live-dot"></span>
+  <canvas id="spatialCanvas"></canvas>
+  <div class="ambient-glow"></div>
+  <div class="noise-layer"></div>
+
+  <!-- Top HUD -->
+  <div class="hud-container">
+    <header class="hud-bar glass">
+      <div class="brand-cluster">
+        <span class="pulse-ring"></span>
         <span>JEKUNRL</span>
+        <span class="hud-clock" id="liveClock">00:00:00 WIB</span>
       </div>
-      <div class="hud-actions">
-        <button class="pill-btn" id="soundToggle">Sound: On</button>
+      <div class="hud-controls">
+        <button class="hud-btn" onclick="openCmd()">
+          <span>Command</span>
+          <span class="kbd-badge">Ctrl K</span>
+        </button>
+        <button class="hud-btn" id="soundBtn">Sound: On</button>
       </div>
     </header>
   </div>
 
-  <!-- Main Interactive Stage -->
+  <!-- Main Stage -->
   <main class="stage">
     <!-- 0. MAIN MENU -->
-    <section class="main-menu-view" id="mainMenu">
+    <section class="main-menu" id="mainMenu">
       <div>
-        <div class="eyebrow-pill glass-surface">
-          <span>Interactive Portfolio • Edition 2026</span>
+        <div class="status-chip glass">
+          <span>Interactive Workspace • v3.0</span>
         </div>
         <h1 class="hero-title">
-          Zaki’s <span>Digital</span><br>Workspace.
+          Building <span>Spatial</span><br>Web & Bots.
         </h1>
-        <p class="hero-desc">
-          Pilih menu di samping untuk melihat profil keahlian, membuka save-slot proyek yang sudah berjalan, atau menyesuaikan tampilan antarmuka.
+        <p class="hero-copy">
+          Portofolio interaktif <strong>Zaki</strong>. Jelajahi profil keahlian, inspeksi save-slot proyek live, atau gunakan peluncur cepat untuk navigasi instan.
         </p>
+        <div class="quick-metrics">
+          <div class="metric-box">
+            <span>4+</span>
+            <small>Live Systems</small>
+          </div>
+          <div class="metric-box">
+            <span>60 FPS</span>
+            <small>Media Pipeline</small>
+          </div>
+          <div class="metric-box">
+            <span>Edge</span>
+            <small>Serverless Stack</small>
+          </div>
+        </div>
       </div>
 
       <div class="menu-stack" id="menuList">
-        <button class="menu-card-btn glass-surface active" data-target="screen-start">
+        <button class="menu-btn glass tilt-card active" data-target="screen-start">
+          <div class="glare"></div>
           <div class="menu-left">
-            <span class="menu-index">01</span>
-            <span class="menu-label">Start</span>
+            <span class="menu-num">01</span>
+            <span class="menu-name">Start</span>
           </div>
-          <span class="menu-sub">Profil & Keahlian</span>
+          <span class="menu-meta">Profil & Stats</span>
         </button>
 
-        <button class="menu-card-btn glass-surface" data-target="screen-load">
+        <button class="menu-btn glass tilt-card" data-target="screen-load">
+          <div class="glare"></div>
           <div class="menu-left">
-            <span class="menu-index">02</span>
-            <span class="menu-label">Load Game</span>
+            <span class="menu-num">02</span>
+            <span class="menu-name">Load Game</span>
           </div>
-          <span class="menu-sub">4 Save Slots</span>
+          <span class="menu-meta">Inspect Save Slots</span>
         </button>
 
-        <button class="menu-card-btn glass-surface" data-target="screen-settings">
+        <button class="menu-btn glass tilt-card" data-target="screen-settings">
+          <div class="glare"></div>
           <div class="menu-left">
-            <span class="menu-index">03</span>
-            <span class="menu-label">Settings</span>
+            <span class="menu-num">03</span>
+            <span class="menu-name">Settings</span>
           </div>
-          <span class="menu-sub">Tema & Audio</span>
+          <span class="menu-meta">Visual & Audio</span>
         </button>
 
-        <button class="menu-card-btn glass-surface" data-target="screen-credits">
+        <button class="menu-btn glass tilt-card" data-target="screen-credits">
+          <div class="glare"></div>
           <div class="menu-left">
-            <span class="menu-index">04</span>
-            <span class="menu-label">Credits</span>
+            <span class="menu-num">04</span>
+            <span class="menu-name">Credits</span>
           </div>
-          <span class="menu-sub">Kontak & Info</span>
+          <span class="menu-meta">Kontak & Info</span>
         </button>
       </div>
     </section>
 
-    <!-- 1. START (PLAYER PROFILE) -->
-    <section class="screen-panel glass-surface" id="screen-start">
-      <div class="panel-top">
-        <div class="panel-heading">
+    <!-- 1. START (PROFILE) -->
+    <section class="panel-view glass" id="screen-start">
+      <div class="panel-header">
+        <div>
           <h2>Player Profile</h2>
-          <p>Ringkasan peran, fokus pengembangan, dan statistik keahlian</p>
+          <p>Ringkasan peran, fokus pengembangan, dan statistik kemampuan</p>
         </div>
-        <button class="btn-back" onclick="goBack()">← Kembali</button>
+        <button class="btn-return" onclick="goBack()">← Kembali</button>
       </div>
 
-      <div class="profile-layout">
-        <div class="inner-glass">
-          <span class="role-tag">Web & Automation Developer</span>
-          <div class="player-name">Zaki (JEKUNRL)</div>
-          <p class="player-bio">
-            Membangun aplikasi web kasir, bot otomasi transaksi tanpa server berat, ekstensi browser kustom, serta alur pemrosesan video 60 FPS dengan desain minimalis yang fungsional.
+      <div class="profile-grid">
+        <div class="sub-glass">
+          <span class="pill-accent">Web & Automation Developer</span>
+          <h3>Zaki (JEKUNRL)</h3>
+          <p>
+            Merancang aplikasi kasir berbasis web, bot otomasi transaksi tanpa server berat, ekstensi browser kustom, serta alur pemrosesan video resolusi tinggi dengan desain minimalis.
           </p>
-          <div class="meta-chips">
-            <span class="chip">Pekanbaru, Indonesia</span>
-            <span class="chip">Glass UI Design</span>
-            <span class="chip">Serverless Systems</span>
+          <div class="tags-wrap">
+            <span class="tag-pill">Pekanbaru, ID</span>
+            <span class="tag-pill">Glass UI</span>
+            <span class="tag-pill">Cloudflare Workers</span>
+            <span class="tag-pill">Supabase</span>
           </div>
         </div>
 
-        <div class="inner-glass">
-          <div class="skill-item">
-            <div class="skill-head"><span>Frontend & Web Apps</span><span>92%</span></div>
-            <div class="progress-track"><div class="progress-fill" style="width: 92%"></div></div>
+        <div class="sub-glass">
+          <div class="stat-block">
+            <div class="stat-info"><span>Frontend & Web Apps</span><span>92%</span></div>
+            <div class="bar-bg"><div class="bar-val" style="width: 92%"></div></div>
           </div>
-          <div class="skill-item">
-            <div class="skill-head"><span>Bot Automation (Workers, D1, Node.js)</span><span>95%</span></div>
-            <div class="progress-track"><div class="progress-fill" style="width: 95%"></div></div>
+          <div class="stat-block">
+            <div class="stat-info"><span>Bot Automation (Workers, D1, Node.js)</span><span>95%</span></div>
+            <div class="bar-bg"><div class="bar-val" style="width: 95%"></div></div>
           </div>
-          <div class="skill-item">
-            <div class="skill-head"><span>UI/UX & Glassmorphism Styling</span><span>90%</span></div>
-            <div class="progress-track"><div class="progress-fill" style="width: 90%"></div></div>
+          <div class="stat-block">
+            <div class="stat-info"><span>UI/UX & Glassmorphism Design</span><span>90%</span></div>
+            <div class="bar-bg"><div class="bar-val" style="width: 90%"></div></div>
           </div>
-          <div class="skill-item">
-            <div class="skill-head"><span>Video & FFmpeg 60 FPS Workflow</span><span>88%</span></div>
-            <div class="progress-track"><div class="progress-fill" style="width: 88%"></div></div>
+          <div class="stat-block">
+            <div class="stat-info"><span>Video & FFmpeg 60 FPS Pipeline</span><span>88%</span></div>
+            <div class="bar-bg"><div class="bar-val" style="width: 88%"></div></div>
           </div>
         </div>
       </div>
     </section>
 
     <!-- 2. LOAD GAME (SAVE SLOTS) -->
-    <section class="screen-panel glass-surface" id="screen-load">
-      <div class="panel-top">
-        <div class="panel-heading">
+    <section class="panel-view glass" id="screen-load">
+      <div class="panel-header">
+        <div>
           <h2>Load Project</h2>
-          <p>Pilih save-slot untuk meninjau proyek yang telah dibangun</p>
+          <p>Klik salah satu save-slot untuk memeriksa detail arsitektur & pratinjau</p>
         </div>
-        <button class="btn-back" onclick="goBack()">← Kembali</button>
+        <button class="btn-return" onclick="goBack()">← Kembali</button>
       </div>
 
       <div class="slots-grid">
-        <article class="slot-card">
+        <article class="slot-item tilt-card" onclick="inspectProject(0)">
+          <div class="glare"></div>
           <div>
-            <div class="slot-header">
-              <span class="slot-badge">Save Slot 01</span>
-              <span class="slot-status">Live</span>
+            <div class="slot-top">
+              <span class="slot-id">SLOT 01</span>
+              <span class="slot-badge">Live Production</span>
             </div>
             <h3>JEKUNRL POS</h3>
-            <p>Aplikasi kasir multi-peran (Admin & Kasir) dengan pembayaran Tunai dan QRIS, struk digital, serta laporan ringkasan harian.</p>
+            <p>Sistem kasir multi-peran (Admin & Kasir) berdesain Glass UI dengan pembayaran Tunai/QRIS dan struk digital.</p>
           </div>
-          <div class="slot-bottom">
+          <div class="slot-foot">
             <span>Supabase • Netlify</span>
-            <a href="https://jekunrl.netlify.app/" target="_blank" rel="noopener" class="launch-btn">Buka App ↗</a>
+            <span class="inspect-pill">Inspect ↗</span>
           </div>
         </article>
 
-        <article class="slot-card">
+        <article class="slot-item tilt-card" onclick="inspectProject(1)">
+          <div class="glare"></div>
           <div>
-            <div class="slot-header">
-              <span class="slot-badge">Save Slot 02</span>
-              <span class="slot-status">Active</span>
+            <div class="slot-top">
+              <span class="slot-id">SLOT 02</span>
+              <span class="slot-badge">Serverless</span>
             </div>
             <h3>JEKUNRL Digital Store</h3>
-            <p>Bot toko digital otomatis di Telegram dengan manajemen stok real-time, verifikasi bukti transfer, dan database SQL edge.</p>
+            <p>Bot toko digital otomatis di Telegram dengan stok real-time, verifikasi bukti transfer, dan database SQL edge.</p>
           </div>
-          <div class="slot-bottom">
-            <span>Cloudflare Workers • D1</span>
-            <a href="#screen-credits" onclick="openScreen('screen-credits')" class="launch-btn">Info</a>
+          <div class="slot-foot">
+            <span>CF Workers • D1</span>
+            <span class="inspect-pill">Inspect ↗</span>
           </div>
         </article>
 
-        <article class="slot-card">
+        <article class="slot-item tilt-card" onclick="inspectProject(2)">
+          <div class="glare"></div>
           <div>
-            <div class="slot-header">
-              <span class="slot-badge">Save Slot 03</span>
-              <span class="slot-status">v2.0</span>
+            <div class="slot-top">
+              <span class="slot-id">SLOT 03</span>
+              <span class="slot-badge">Extension v2</span>
             </div>
             <h3>JEKUNRL × TikTok</h3>
             <p>Ekstensi browser kustom untuk kreator dengan integrasi verifikasi akun, tema gelap minimalis, dan alur kerja cepat.</p>
           </div>
-          <div class="slot-bottom">
-            <span>JavaScript • Chrome API</span>
-            <a href="#screen-credits" onclick="openScreen('screen-credits')" class="launch-btn">Info</a>
+          <div class="slot-foot">
+            <span>JS • Chrome API</span>
+            <span class="inspect-pill">Inspect ↗</span>
           </div>
         </article>
 
-        <article class="slot-card">
+        <article class="slot-item tilt-card" onclick="inspectProject(3)">
+          <div class="glare"></div>
           <div>
-            <div class="slot-header">
-              <span class="slot-badge">Save Slot 04</span>
-              <span class="slot-status">Ready</span>
+            <div class="slot-top">
+              <span class="slot-id">SLOT 04</span>
+              <span class="slot-badge">Media Engine</span>
             </div>
             <h3>WA Story HD Processor</h3>
             <p>Bot pemrosesan video otomatis berbasis Node.js dan FFmpeg untuk menjaga ketajaman resolusi dan kelancaran 60 FPS.</p>
           </div>
-          <div class="slot-bottom">
+          <div class="slot-foot">
             <span>Node.js • FFmpeg</span>
-            <a href="#screen-credits" onclick="openScreen('screen-credits')" class="launch-btn">Info</a>
+            <span class="inspect-pill">Inspect ↗</span>
           </div>
         </article>
       </div>
     </section>
 
     <!-- 3. SETTINGS -->
-    <section class="screen-panel glass-surface" id="screen-settings">
-      <div class="panel-top">
-        <div class="panel-heading">
+    <section class="panel-view glass" id="screen-settings">
+      <div class="panel-header">
+        <div>
           <h2>Settings</h2>
-          <p>Sesuaikan pencahayaan kaca, warna aksen, dan efek suara</p>
+          <p>Sesuaikan pencahayaan partikel, warna aksen, dan efek suara</p>
         </div>
-        <button class="btn-back" onclick="goBack()">← Kembali</button>
+        <button class="btn-return" onclick="goBack()">← Kembali</button>
       </div>
 
-      <div class="settings-stack">
-        <div class="setting-row">
-          <div class="setting-text">
+      <div class="settings-list">
+        <div class="setting-card">
+          <div>
             <h4>Tint Cahaya & Aksen</h4>
-            <p>Pilih nuansa warna yang memantul di balik panel kaca</p>
+            <p>Ubah warna partikel dan sorotan antarmuka kaca</p>
           </div>
-          <div class="swatches">
-            <button class="swatch active" style="background:#38bdf8" onclick="setTheme('#38bdf8', 'rgba(56, 189, 248, 0.16)', 'rgba(56, 189, 248, 0.22)', 'rgba(99, 102, 241, 0.18)', this)" title="Glacier Cyan"></button>
-            <button class="swatch" style="background:#e2e8f0" onclick="setTheme('#f8fafc', 'rgba(255, 255, 255, 0.12)', 'rgba(255, 255, 255, 0.15)', 'rgba(148, 163, 184, 0.14)', this)" title="Pure Frost"></button>
-            <button class="swatch" style="background:#34d399" onclick="setTheme('#34d399', 'rgba(52, 211, 153, 0.16)', 'rgba(52, 211, 153, 0.22)', 'rgba(16, 185, 129, 0.16)', this)" title="Emerald Glass"></button>
-            <button class="swatch" style="background:#a78bfa" onclick="setTheme('#a78bfa', 'rgba(167, 139, 250, 0.16)', 'rgba(167, 139, 250, 0.24)', 'rgba(236, 72, 153, 0.14)', this)" title="Violet Mist"></button>
+          <div class="swatch-row">
+            <button class="swatch active" style="background:#38bdf8" onclick="setAccent('#38bdf8', '56, 189, 248', this)" title="Glacier Cyan"></button>
+            <button class="swatch" style="background:#f8fafc" onclick="setAccent('#f8fafc', '248, 250, 252', this)" title="Pure Frost"></button>
+            <button class="swatch" style="background:#34d399" onclick="setAccent('#34d399', '52, 211, 153', this)" title="Emerald Glass"></button>
+            <button class="swatch" style="background:#a78bfa" onclick="setAccent('#a78bfa', '167, 139, 250', this)" title="Violet Mist"></button>
           </div>
         </div>
 
-        <div class="setting-row">
-          <div class="setting-text">
-            <h4>Ambient Light Orbs</h4>
-            <p>Intensitas cahaya lembut di belakang lapisan kaca</p>
+        <div class="setting-card">
+          <div>
+            <h4>Interactive Particle Mesh</h4>
+            <p>Jaringan titik cahaya interaktif di belakang kaca</p>
           </div>
-          <button class="pill-btn" id="orbToggle" onclick="toggleOrbs()">High</button>
+          <button class="hud-btn" id="particleBtn" onclick="toggleParticles()">On</button>
         </div>
 
-        <div class="setting-row">
-          <div class="setting-text">
+        <div class="setting-card">
+          <div>
             <h4>Efek Suara Navigasi</h4>
-            <p>Umpan balik suara halus saat memilih menu</p>
+            <p>Umpan balik suara sintetis saat memilih menu</p>
           </div>
-          <button class="pill-btn" id="sfxSettingBtn" onclick="toggleSound()">On</button>
+          <button class="hud-btn" id="soundSettingBtn" onclick="toggleSound()">On</button>
         </div>
       </div>
     </section>
 
     <!-- 4. CREDITS -->
-    <section class="screen-panel glass-surface" id="screen-credits">
-      <div class="panel-top">
-        <div class="panel-heading">
+    <section class="panel-view glass" id="screen-credits">
+      <div class="panel-header">
+        <div>
           <h2>Credits & Contact</h2>
           <p>Informasi pengembang dan saluran komunikasi langsung</p>
         </div>
-        <button class="btn-back" onclick="goBack()">← Kembali</button>
+        <button class="btn-return" onclick="goBack()">← Kembali</button>
       </div>
 
-      <div class="credits-center">
-        <div class="credit-group">
-          <div class="credit-label">Created & Designed By</div>
-          <div class="credit-value">Zaki — JEKUNRL</div>
+      <div class="credits-wrap">
+        <div class="credit-block">
+          <span>Architecture & Design</span>
+          <strong>Zaki — JEKUNRL</strong>
         </div>
 
-        <div class="credit-group">
-          <div class="credit-label">Interface & Stack</div>
-          <div class="credit-value">Frosted Glassmorphism • HTML5 • Vanilla JS</div>
+        <div class="credit-block">
+          <span>Rendering & Audio Engine</span>
+          <strong>HTML5 Canvas • 3D CSS Tilt • Web Audio API</strong>
         </div>
 
-        <div class="contact-pills">
+        <div class="comms-row">
           <a href="https://t.me/username_kamu" target="_blank" rel="noopener">Telegram ↗</a>
           <a href="https://github.com/username_kamu" target="_blank" rel="noopener">GitHub ↗</a>
-          <a href="mailto:emailkamu@example.com">Email ↗</a>
+          <button onclick="copyEmail()">Salin Email</button>
         </div>
       </div>
     </section>
   </main>
 
-  <!-- Subtle Bottom Hint -->
+  <!-- Project Inspector Modal -->
+  <div class="modal-backdrop" id="projectModal" onclick="if(event.target===this) closeInspector()">
+    <div class="inspector-modal glass">
+      <div class="modal-head">
+        <div>
+          <span class="pill-accent" id="mCategory">Web App</span>
+          <h3 class="modal-title" id="mTitle">JEKUNRL POS</h3>
+        </div>
+        <button class="btn-return" onclick="closeInspector()">✕</button>
+      </div>
+
+      <div class="visual-blueprint" id="mSpecs"></div>
+      <p class="modal-desc" id="mDesc"></p>
+
+      <div class="modal-actions">
+        <button class="btn-return" onclick="closeInspector()">Tutup</button>
+        <a href="#" target="_blank" rel="noopener" class="btn-primary-glass" id="mLink">Buka Proyek ↗</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Command Palette Modal -->
+  <div class="modal-backdrop" id="cmdModal" onclick="if(event.target===this) closeCmd()">
+    <div class="cmd-box glass">
+      <input type="text" class="cmd-input" id="cmdInput" placeholder="Ketik perintah atau nama menu..." autocomplete="off" />
+      <div class="cmd-list" id="cmdList"></div>
+    </div>
+  </div>
+
+  <!-- Bottom HUD -->
   <footer class="hud-footer">
-    <span>Gunakan ↑/↓, Enter, dan Esc untuk navigasi cepat</span>
+    <span>↑/↓ Navigasi • Enter Pilih • Ctrl+K Command</span>
     <span>© 2026 Zaki — JEKUNRL</span>
   </footer>
 
   <script>
-    let soundEnabled = true;
-    let audioCtx = null;
-    let currentIndex = 0;
+    // 1. Boot Sequence
+    const bootScreen = document.getElementById('bootScreen');
+    const bootFill = document.getElementById('bootFill');
+    const bootText = document.getElementById('bootText');
+    let progress = 0;
+    const bootTimer = setInterval(() => {
+      progress += Math.floor(Math.random() * 28) + 18;
+      if (progress >= 100) {
+        progress = 100;
+        bootFill.style.width = '100%';
+        bootText.textContent = 'Ready.';
+        clearInterval(bootTimer);
+        setTimeout(() => bootScreen.classList.add('done'), 260);
+      } else {
+        bootFill.style.width = progress + '%';
+      }
+    }, 90);
 
-    const menuItems = Array.from(document.querySelectorAll('.menu-card-btn'));
-    const mainMenu = document.getElementById('mainMenu');
-    const panels = Array.from(document.querySelectorAll('.screen-panel'));
+    // 2. Live Clock (WIB)
+    function updateClock() {
+      const now = new Date();
+      const str = now.toLocaleTimeString('id-ID', { hour12: false });
+      document.getElementById('liveClock').textContent = `${str} WIB`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
 
-    // Mouse Spotlight Tracking on Glass Buttons
-    menuItems.forEach((card) => {
+    // 3. Interactive Canvas Particle Mesh
+    const canvas = document.getElementById('spatialCanvas');
+    const ctx = canvas.getContext('2d');
+    let particlesEnabled = true;
+    let accentRgb = '56, 189, 248';
+    let mouse = { x: -999, y: -999 };
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      initParticles();
+    }
+
+    function initParticles() {
+      const count = Math.min(55, Math.floor((canvas.width * canvas.height) / 22000));
+      particles = Array.from({ length: count }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.45,
+        vy: (Math.random() - 0.5) * 0.45,
+        r: Math.random() * 1.8 + 0.8
+      }));
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('mousemove', (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    });
+
+    function animateCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (particlesEnabled) {
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+          if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${accentRgb}, 0.55)`;
+          ctx.fill();
+
+          // Connect to nearby particles
+          for (let j = i + 1; j < particles.length; j++) {
+            const p2 = particles[j];
+            const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+            if (dist < 130) {
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(p2.x, p2.y);
+              ctx.strokeStyle = `rgba(${accentRgb}, ${(1 - dist / 130) * 0.16})`;
+              ctx.lineWidth = 1;
+              ctx.stroke();
+            }
+          }
+
+          // Connect to pointer
+          const mDist = Math.hypot(p.x - mouse.x, p.y - mouse.y);
+          if (mDist < 170) {
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(mouse.x, mouse.y);
+            ctx.strokeStyle = `rgba(${accentRgb}, ${(1 - mDist / 170) * 0.35})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(animateCanvas);
+    }
+    resizeCanvas();
+    animateCanvas();
+
+    // 4. 3D Perspective Tilt & Specular Glare
+    document.querySelectorAll('.tilt-card').forEach(card => {
       card.addEventListener('mousemove', (e) => {
         const rect = card.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
-        card.style.setProperty('--mx', `${x}%`);
-        card.style.setProperty('--my', `${y}%`);
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const rx = ((y / rect.height) - 0.5) * -9;
+        const ry = ((x / rect.width) - 0.5) * 9;
+        card.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) translateZ(6px)`;
+        card.style.setProperty('--gx', `${(x / rect.width) * 100}%`);
+        card.style.setProperty('--gy', `${(y / rect.height) * 100}%`);
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = 'rotateX(0deg) rotateY(0deg) translateZ(0)';
       });
     });
 
-    // Soft Glass Click Sound
-    function playTone(freq = 520, duration = 0.055) {
+    // 5. Web Audio Synthesized UI Sound
+    let soundEnabled = true;
+    let audioCtx = null;
+
+    function playTone(freq = 540, dur = 0.05) {
       if (!soundEnabled) return;
       try {
-        if (!audioCtx) {
-          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sine';
         osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.045, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.start();
-        osc.stop(audioCtx.currentTime + duration);
+        osc.stop(audioCtx.currentTime + dur);
       } catch (e) {}
     }
 
-    function updateMenuSelection(index) {
-      menuItems.forEach((btn, i) => btn.classList.toggle('active', i === index));
-      currentIndex = index;
+    // 6. Menu Navigation
+    const menuItems = Array.from(document.querySelectorAll('.menu-btn'));
+    const mainMenu = document.getElementById('mainMenu');
+    const panels = Array.from(document.querySelectorAll('.panel-view'));
+    let currentIndex = 0;
+
+    function setActiveMenu(idx) {
+      menuItems.forEach((b, i) => b.classList.toggle('active', i === idx));
+      currentIndex = idx;
     }
 
-    function openScreen(screenId) {
-      playTone(680, 0.08);
+    function openScreen(id) {
+      playTone(700, 0.07);
       mainMenu.style.display = 'none';
       panels.forEach(p => p.classList.remove('active'));
-      const target = document.getElementById(screenId);
-      if (target) target.classList.add('active');
+      const el = document.getElementById(id);
+      if (el) el.classList.add('active');
     }
 
     function goBack() {
-      playTone(380, 0.07);
+      playTone(390, 0.06);
       panels.forEach(p => p.classList.remove('active'));
       mainMenu.style.display = 'grid';
     }
@@ -1015,63 +1384,215 @@
     menuItems.forEach((btn, idx) => {
       btn.addEventListener('mouseenter', () => {
         if (currentIndex !== idx) {
-          updateMenuSelection(idx);
-          playTone(460, 0.035);
+          setActiveMenu(idx);
+          playTone(470, 0.03);
         }
       });
       btn.addEventListener('click', () => {
-        updateMenuSelection(idx);
+        setActiveMenu(idx);
         openScreen(btn.dataset.target);
       });
     });
 
+    // 7. Project Inspector Data & Modal
+    const projectsData = [
+      {
+        category: 'Web Application',
+        title: 'JEKUNRL POS',
+        specs: [
+          ['Arsitektur', 'Single Page App + Serverless DB'],
+          ['Stack', 'HTML/CSS Glass UI, JavaScript, Supabase'],
+          ['Fitur Inti', 'Multi-role (Admin/Kasir), QRIS & Tunai, Struk Digital'],
+          ['Hosting', 'Netlify Edge CDN']
+        ],
+        desc: 'Aplikasi Point-of-Sale yang dirancang khusus untuk operasional usaha dengan antarmuka gelap yang nyaman di mata, pengelolaan stok menu dinamis, serta rekap pengeluaran dan omzet harian.',
+        link: 'https://jekunrl.netlify.app/',
+        linkText: 'Buka Live App ↗'
+      },
+      {
+        category: 'Automation Bot',
+        title: 'JEKUNRL Digital Store Bot',
+        specs: [
+          ['Arsitektur', 'Edge Worker + Relational SQL'],
+          ['Stack', 'Cloudflare Workers, D1 Database, Telegram Bot API'],
+          ['Fitur Inti', 'Auto-delivery produk, Verifikasi bukti transfer, Force-subscribe'],
+          ['Latency', '< 50ms Global Edge']
+        ],
+        desc: 'Sistem etalase otomatis di Telegram yang menangani pemesanan produk digital 24/7 tanpa perlu menyewa VPS, lengkap dengan panel admin langsung di dalam chat.',
+        link: '#credits',
+        linkText: 'Hubungi untuk Demo'
+      },
+      {
+        category: 'Browser Extension',
+        title: 'JEKUNRL × TikTok Studio',
+        specs: [
+          ['Platform', 'Chromium Browser Extension (Manifest V3)'],
+          ['Stack', 'JavaScript, Custom CSS Injection, Auth API'],
+          ['Fitur Inti', 'Otentikasi pengguna, Kustomisasi tema gelap, Alur kerja cepat'],
+          ['Desain', 'Minimalist Glass Overlay']
+        ],
+        desc: 'Ekstensi browser yang memodifikasi dan mempercepat alur kerja kreator dengan sistem login terintegrasi serta tampilan antarmuka yang selaras dengan identitas visual JEKUNRL.',
+        link: '#credits',
+        linkText: 'Hubungi untuk Info'
+      },
+      {
+        category: 'Media Pipeline',
+        title: 'WA Story HD Processor',
+        specs: [
+          ['Runtime', 'Node.js + Native FFmpeg Binary'],
+          ['Stack', '@whiskeysockets/baileys, FFmpeg CLI'],
+          ['Preset', '1080p 60fps, 720p 60fps, HD Document Mode'],
+          ['Tujuan', 'Minimalisir kompresi agresif platform']
+        ],
+        desc: 'Bot pemrosesan video otomatis yang mengonversi ulang bitrate dan profil encoding video sehingga tetap tajam dan mulus 60 FPS saat dibagikan ke status maupun media sosial.',
+        link: '#credits',
+        linkText: 'Hubungi untuk Info'
+      }
+    ];
+
+    function inspectProject(index) {
+      playTone(660, 0.07);
+      const data = projectsData[index];
+      document.getElementById('mCategory').textContent = data.category;
+      document.getElementById('mTitle').textContent = data.title;
+      document.getElementById('mDesc').textContent = data.desc;
+      document.getElementById('mSpecs').innerHTML = data.specs
+        .map(([k, v]) => `<div class="blueprint-row"><span>${k}</span><strong>${v}</strong></div>`)
+        .join('');
+
+      const linkEl = document.getElementById('mLink');
+      linkEl.textContent = data.linkText;
+      if (data.link === '#credits') {
+        linkEl.removeAttribute('target');
+        linkEl.href = '#';
+        linkEl.onclick = (e) => {
+          e.preventDefault();
+          closeInspector();
+          openScreen('screen-credits');
+        };
+      } else {
+        linkEl.setAttribute('target', '_blank');
+        linkEl.href = data.link;
+        linkEl.onclick = null;
+      }
+
+      document.getElementById('projectModal').classList.add('open');
+    }
+
+    function closeInspector() {
+      playTone(400, 0.05);
+      document.getElementById('projectModal').classList.remove('open');
+    }
+
+    // 8. Command Palette (Ctrl + K)
+    const commands = [
+      { label: 'Buka Start (Profil & Keahlian)', hint: 'Menu 01', action: () => openScreen('screen-start') },
+      { label: 'Buka Load Game (Save Slots Proyek)', hint: 'Menu 02', action: () => openScreen('screen-load') },
+      { label: 'Inspect: JEKUNRL POS', hint: 'Slot 01', action: () => { openScreen('screen-load'); inspectProject(0); } },
+      { label: 'Inspect: JEKUNRL Digital Store Bot', hint: 'Slot 02', action: () => { openScreen('screen-load'); inspectProject(1); } },
+      { label: 'Buka Settings (Tema & Partikel)', hint: 'Menu 03', action: () => openScreen('screen-settings') },
+      { label: 'Buka Credits & Kontak', hint: 'Menu 04', action: () => openScreen('screen-credits') },
+      { label: 'Kembali ke Layar Utama', hint: 'Home', action: () => goBack() }
+    ];
+
+    function renderCmdList(filter = '') {
+      const list = document.getElementById('cmdList');
+      const filtered = commands.filter(c => c.label.toLowerCase().includes(filter.toLowerCase()));
+      list.innerHTML = filtered.map((c, idx) => `
+        <div class="cmd-option" onclick="runCmd(${commands.indexOf(c)})">
+          <span>${c.label}</span>
+          <span>${c.hint}</span>
+        </div>
+      `).join('');
+    }
+
+    function openCmd() {
+      playTone(620, 0.06);
+      const modal = document.getElementById('cmdModal');
+      const input = document.getElementById('cmdInput');
+      modal.classList.add('open');
+      input.value = '';
+      renderCmdList();
+      setTimeout(() => input.focus(), 50);
+    }
+
+    function closeCmd() {
+      document.getElementById('cmdModal').classList.remove('open');
+    }
+
+    function runCmd(idx) {
+      closeCmd();
+      commands[idx].action();
+    }
+
+    document.getElementById('cmdInput').addEventListener('input', (e) => renderCmdList(e.target.value));
+
+    // Keyboard Shortcuts
     document.addEventListener('keydown', (e) => {
-      const isMenuVisible = mainMenu.style.display !== 'none';
-      if (isMenuVisible) {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        const modal = document.getElementById('cmdModal');
+        modal.classList.contains('open') ? closeCmd() : openCmd();
+        return;
+      }
+      if (document.getElementById('cmdModal').classList.contains('open')) {
+        if (e.key === 'Escape') closeCmd();
+        return;
+      }
+      if (document.getElementById('projectModal').classList.contains('open')) {
+        if (e.key === 'Escape') closeInspector();
+        return;
+      }
+
+      const onHome = mainMenu.style.display !== 'none';
+      if (onHome) {
         if (e.key === 'ArrowDown') {
           e.preventDefault();
-          updateMenuSelection((currentIndex + 1) % menuItems.length);
-          playTone(460, 0.035);
+          setActiveMenu((currentIndex + 1) % menuItems.length);
+          playTone(470, 0.03);
         } else if (e.key === 'ArrowUp') {
           e.preventDefault();
-          updateMenuSelection((currentIndex - 1 + menuItems.length) % menuItems.length);
-          playTone(460, 0.035);
+          setActiveMenu((currentIndex - 1 + menuItems.length) % menuItems.length);
+          playTone(470, 0.03);
         } else if (e.key === 'Enter') {
           e.preventDefault();
           openScreen(menuItems[currentIndex].dataset.target);
         }
-      } else if (e.key === 'Escape' || e.key === 'Backspace') {
+      } else if (e.key === 'Escape') {
         goBack();
       }
     });
 
-    function setTheme(accent, tint, orb1, orb2, el) {
+    // Settings Controls
+    function setAccent(hex, rgb, el) {
       playTone(600, 0.06);
-      const root = document.documentElement.style;
-      root.setProperty('--accent', accent);
-      root.setProperty('--accent-tint', tint);
-      root.setProperty('--orb-1', orb1);
-      root.setProperty('--orb-2', orb2);
+      document.documentElement.style.setProperty('--accent', hex);
+      document.documentElement.style.setProperty('--accent-rgb', rgb);
+      accentRgb = rgb;
       document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
       el.classList.add('active');
     }
 
-    function toggleOrbs() {
+    function toggleParticles() {
+      particlesEnabled = !particlesEnabled;
+      document.getElementById('particleBtn').textContent = particlesEnabled ? 'On' : 'Off';
       playTone(500, 0.05);
-      const canvas = document.getElementById('ambientCanvas');
-      const btn = document.getElementById('orbToggle');
-      const isDimmed = canvas.classList.toggle('dimmed');
-      btn.textContent = isDimmed ? 'Low' : 'High';
     }
 
     function toggleSound() {
       soundEnabled = !soundEnabled;
-      document.getElementById('soundToggle').textContent = soundEnabled ? 'Sound: On' : 'Sound: Off';
-      document.getElementById('sfxSettingBtn').textContent = soundEnabled ? 'On' : 'Off';
+      document.getElementById('soundBtn').textContent = soundEnabled ? 'Sound: On' : 'Sound: Off';
+      document.getElementById('soundSettingBtn').textContent = soundEnabled ? 'On' : 'Off';
       if (soundEnabled) playTone(640, 0.07);
     }
 
-    document.getElementById('soundToggle').addEventListener('click', toggleSound);
+    document.getElementById('soundBtn').addEventListener('click', toggleSound);
+
+    function copyEmail() {
+      navigator.clipboard?.writeText('emailkamu@example.com');
+      playTone(720, 0.08);
+      alert('Alamat email berhasil disalin!');
+    }
   </script>
 </body>
 </html>
