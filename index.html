@@ -3,121 +3,181 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>JEKUNRL // Zaki — Interactive Portfolio</title>
+  <title>JEKUNRL — Zaki | Interactive Portfolio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --bg-base: #06070a;
-      --panel-bg: rgba(13, 16, 23, 0.78);
-      --panel-border: rgba(255, 255, 255, 0.1);
-      --text-main: #f3f4f6;
-      --text-dim: #9ca3af;
+      --bg-base: #07080c;
+      --glass-bg: rgba(255, 255, 255, 0.035);
+      --glass-bg-hover: rgba(255, 255, 255, 0.065);
+      --glass-border: rgba(255, 255, 255, 0.09);
+      --glass-highlight: rgba(255, 255, 255, 0.18);
+      --text-primary: #f5f6f8;
+      --text-secondary: #9ca3af;
+      --text-muted: #6b7280;
       --accent: #38bdf8;
-      --accent-soft: rgba(56, 189, 248, 0.14);
-      --accent-glow: rgba(56, 189, 248, 0.4);
-      --font-ui: 'Space Grotesk', sans-serif;
-      --font-mono: 'JetBrains Mono', monospace;
-      --font-serif: 'Instrument Serif', serif;
+      --accent-tint: rgba(56, 189, 248, 0.16);
+      --orb-1: rgba(56, 189, 248, 0.22);
+      --orb-2: rgba(99, 102, 241, 0.18);
+      --font-sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-serif: 'Instrument Serif', Georgia, serif;
+      --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
       background-color: var(--bg-base);
-      color: var(--text-main);
-      font-family: var(--font-ui);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
       min-height: 100vh;
       overflow-x: hidden;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       position: relative;
+      user-select: none;
     }
 
-    /* Background Grid & Ambient Glow */
-    .bg-grid {
-      position: fixed;
-      inset: 0;
-      z-index: -2;
-      background-image: 
-        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-      background-size: 42px 42px;
-      mask-image: radial-gradient(circle at center, black 45%, transparent 95%);
-      transition: opacity 0.3s ease;
-    }
-
-    .bg-grid.hidden {
-      opacity: 0;
-    }
-
-    .bg-glow {
+    /* Subtle Noise Texture Overlay */
+    .noise-overlay {
       position: fixed;
       inset: 0;
       z-index: -1;
       pointer-events: none;
-      background:
-        radial-gradient(circle at 20% 25%, var(--accent-soft), transparent 45%),
-        radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.08), transparent 45%);
-      transition: background 0.4s ease;
+      opacity: 0.032;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
     }
 
-    /* Top HUD Bar */
+    /* Ambient Floating Light Orbs behind the glass */
+    .ambient-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      overflow: hidden;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    .ambient-canvas.dimmed {
+      opacity: 0.2;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(95px);
+      animation: floatOrb 18s ease-in-out infinite alternate;
+      transition: background 0.5s ease;
+    }
+
+    .orb-1 {
+      width: 440px;
+      height: 440px;
+      background: var(--orb-1);
+      top: -80px;
+      left: -60px;
+    }
+
+    .orb-2 {
+      width: 500px;
+      height: 500px;
+      background: var(--orb-2);
+      bottom: -120px;
+      right: -80px;
+      animation-delay: -6s;
+    }
+
+    .orb-3 {
+      width: 300px;
+      height: 300px;
+      background: rgba(255, 255, 255, 0.05);
+      top: 42%;
+      left: 45%;
+      animation-duration: 24s;
+    }
+
+    @keyframes floatOrb {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(45px, 35px) scale(1.08); }
+    }
+
+    /* Reusable Frosted Glass Surface */
+    .glass-surface {
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0.018) 100%);
+      backdrop-filter: blur(24px) saturate(160%);
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+      border: 1px solid var(--glass-border);
+      box-shadow:
+        inset 0 1px 0 0 var(--glass-highlight),
+        0 20px 40px -15px rgba(0, 0, 0, 0.55);
+    }
+
+    /* Top Floating HUD Bar */
+    .hud-wrapper {
+      padding: 20px 24px 0;
+      max-width: 1080px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
     .hud-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 20px 28px;
-      font-family: var(--font-mono);
-      font-size: 0.78rem;
-      color: var(--text-dim);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      backdrop-filter: blur(10px);
+      padding: 12px 20px;
+      border-radius: 16px;
+      font-size: 0.84rem;
     }
 
-    .hud-status {
+    .hud-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--accent);
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+
+    .hud-actions {
       display: flex;
       align-items: center;
       gap: 10px;
     }
 
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #22c55e;
-      box-shadow: 0 0 10px #22c55e;
-    }
-
-    .hud-right {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .sound-btn {
+    .pill-btn {
       background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--panel-border);
-      color: var(--text-main);
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      padding: 5px 10px;
-      border-radius: 6px;
+      border: 1px solid var(--glass-border);
+      color: var(--text-secondary);
+      font-family: var(--font-sans);
+      font-size: 0.78rem;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 999px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.25s var(--ease-spring);
     }
 
-    .sound-btn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
+    .pill-btn:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--glass-highlight);
     }
 
     /* Main Stage */
@@ -126,317 +186,399 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 32px 20px;
+      padding: 32px 24px;
       max-width: 1080px;
       width: 100%;
       margin: 0 auto;
     }
 
-    /* Title & Main Menu Layout */
+    /* 0. Main Menu Layout */
     .main-menu-view {
       width: 100%;
       display: grid;
-      grid-template-columns: 1.2fr 1fr;
-      gap: 48px;
+      grid-template-columns: 1.15fr 0.95fr;
+      gap: 52px;
       align-items: center;
-      animation: fadeIn 0.4s ease;
+      animation: viewReveal 0.5s var(--ease-spring);
     }
 
-    .game-title-block .edition {
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-      color: var(--accent);
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      margin-bottom: 12px;
-      display: block;
+    .eyebrow-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
     }
 
-    .game-title-block h1 {
-      font-size: clamp(3rem, 7vw, 5.2rem);
+    .hero-title {
+      font-size: clamp(3rem, 6.5vw, 4.8rem);
       font-weight: 700;
-      line-height: 0.95;
-      letter-spacing: -0.04em;
-      margin-bottom: 16px;
+      line-height: 1.02;
+      letter-spacing: -0.035em;
+      margin-bottom: 18px;
     }
 
-    .game-title-block h1 span {
+    .hero-title span {
       font-family: var(--font-serif);
       font-style: italic;
       font-weight: 400;
       color: var(--accent);
+      letter-spacing: -0.01em;
+      transition: color 0.3s ease;
     }
 
-    .game-subtitle {
-      color: var(--text-dim);
-      font-size: 1rem;
+    .hero-desc {
+      color: var(--text-secondary);
+      font-size: 1.02rem;
+      line-height: 1.65;
       max-width: 440px;
-      line-height: 1.6;
     }
 
-    /* Menu Options List */
-    .menu-list {
+    /* Glass Game Menu Buttons */
+    .menu-stack {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 14px;
     }
 
-    .menu-item {
+    .menu-card-btn {
       position: relative;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 16px 22px;
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-border);
-      border-radius: 12px;
-      color: var(--text-main);
-      font-family: var(--font-mono);
-      font-size: 1.05rem;
-      font-weight: 500;
-      letter-spacing: 0.06em;
+      padding: 18px 24px;
+      border-radius: 18px;
+      color: var(--text-primary);
+      font-family: var(--font-sans);
       cursor: pointer;
-      transition: all 0.2s ease;
       text-align: left;
-      backdrop-filter: blur(12px);
+      overflow: hidden;
+      transition: transform 0.3s var(--ease-spring), border-color 0.25s ease, background 0.25s ease;
     }
 
-    .menu-item:hover,
-    .menu-item.active {
-      border-color: var(--accent);
-      background: var(--accent-soft);
-      transform: translateX(8px);
-      box-shadow: 0 0 24px rgba(0, 0, 0, 0.4);
-    }
-
-    .menu-item .cursor-arrow {
-      color: var(--accent);
+    .menu-card-btn::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.12), transparent 65%);
       opacity: 0;
-      transform: translateX(-6px);
-      transition: all 0.2s ease;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
     }
 
-    .menu-item:hover .cursor-arrow,
-    .menu-item.active .cursor-arrow {
+    .menu-card-btn:hover::before,
+    .menu-card-btn.active::before {
       opacity: 1;
-      transform: translateX(0);
     }
 
-    .menu-hint {
-      font-size: 0.72rem;
-      color: var(--text-dim);
-      font-weight: 400;
+    .menu-card-btn:hover,
+    .menu-card-btn.active {
+      transform: translateX(8px);
+      border-color: var(--glass-highlight);
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.09) 0%, var(--accent-tint) 100%);
     }
 
-    /* Sub-Screens (Panels) */
+    .menu-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .menu-index {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--accent);
+      background: rgba(255, 255, 255, 0.06);
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s ease;
+    }
+
+    .menu-card-btn.active .menu-index,
+    .menu-card-btn:hover .menu-index {
+      background: var(--accent);
+      color: #06070a;
+    }
+
+    .menu-label {
+      font-size: 1.08rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .menu-sub {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    /* Sub-Screen Glass Panels */
     .screen-panel {
       display: none;
       width: 100%;
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-border);
-      border-radius: 20px;
-      padding: 32px;
-      backdrop-filter: blur(18px);
-      animation: panelSlide 0.28s ease;
+      border-radius: 26px;
+      padding: 34px;
+      animation: viewReveal 0.38s var(--ease-spring);
     }
 
     .screen-panel.active {
       display: block;
     }
 
-    .panel-header {
+    .panel-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 18px;
-      margin-bottom: 24px;
-      border-bottom: 1px solid var(--panel-border);
+      padding-bottom: 20px;
+      margin-bottom: 28px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-    .panel-title {
-      font-family: var(--font-mono);
-      font-size: 1.2rem;
-      color: var(--accent);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+    .panel-heading h2 {
+      font-size: 1.45rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .panel-heading p {
+      font-size: 0.86rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
     }
 
     .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--panel-border);
-      color: var(--text-main);
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-      padding: 8px 16px;
-      border-radius: 8px;
+      border: 1px solid var(--glass-border);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 0.84rem;
+      font-weight: 500;
+      padding: 9px 16px;
+      border-radius: 12px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
     }
 
     .btn-back:hover {
-      border-color: var(--accent);
-      color: var(--accent);
+      background: rgba(255, 255, 255, 0.12);
+      border-color: var(--glass-highlight);
     }
 
-    /* START Screen: Character Stats */
-    .profile-grid {
+    /* 1. START (Profile & Stats) */
+    .profile-layout {
       display: grid;
-      grid-template-columns: 1fr 1.2fr;
-      gap: 28px;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 24px;
     }
 
-    .char-card {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--panel-border);
-      border-radius: 14px;
-      padding: 22px;
+    .inner-glass {
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
     }
 
-    .char-role {
-      font-family: var(--font-mono);
-      font-size: 0.78rem;
+    .role-tag {
+      display: inline-block;
+      font-size: 0.76rem;
+      font-weight: 500;
       color: var(--accent);
-      margin-bottom: 6px;
-    }
-
-    .char-name {
-      font-size: 1.6rem;
-      font-weight: 700;
+      background: var(--accent-tint);
+      padding: 4px 12px;
+      border-radius: 999px;
       margin-bottom: 12px;
     }
 
-    .char-bio {
-      color: var(--text-dim);
-      font-size: 0.94rem;
-      line-height: 1.65;
-      margin-bottom: 18px;
-    }
-
-    .stat-row {
-      margin-bottom: 16px;
-    }
-
-    .stat-label {
-      display: flex;
-      justify-content: space-between;
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-      margin-bottom: 6px;
-    }
-
-    .stat-bar {
-      height: 8px;
-      background: rgba(255, 255, 255, 0.07);
-      border-radius: 99px;
-      overflow: hidden;
-    }
-
-    .stat-fill {
-      height: 100%;
-      background: var(--accent);
-      border-radius: 99px;
-      box-shadow: 0 0 12px var(--accent-glow);
-    }
-
-    /* LOAD GAME Screen: Save Slots */
-    .save-slots {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 16px;
-    }
-
-    .slot-card {
-      background: rgba(255, 255, 255, 0.025);
-      border: 1px solid var(--panel-border);
-      border-radius: 14px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: all 0.2s;
-    }
-
-    .slot-card:hover {
-      border-color: var(--accent);
-      transform: translateY(-3px);
-    }
-
-    .slot-meta {
-      display: flex;
-      justify-content: space-between;
-      font-family: var(--font-mono);
-      font-size: 0.74rem;
-      color: var(--accent);
+    .player-name {
+      font-size: 1.7rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
       margin-bottom: 10px;
     }
 
+    .player-bio {
+      color: var(--text-secondary);
+      font-size: 0.94rem;
+      line-height: 1.65;
+      margin-bottom: 20px;
+    }
+
+    .meta-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      padding: 5px 12px;
+      border-radius: 999px;
+    }
+
+    .skill-item {
+      margin-bottom: 18px;
+    }
+
+    .skill-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .skill-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.86rem;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .skill-head span:last-child {
+      color: var(--text-secondary);
+    }
+
+    .progress-track {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 999px;
+      overflow: hidden;
+      padding: 1px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), rgba(255, 255, 255, 0.85));
+      border-radius: 999px;
+      transition: background 0.3s ease;
+    }
+
+    /* 2. LOAD GAME (Save Slots / Projects) */
+    .slots-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+    }
+
+    .slot-card {
+      position: relative;
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+      transition: transform 0.3s var(--ease-spring), border-color 0.25s ease, background 0.25s ease;
+    }
+
+    .slot-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--glass-highlight);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .slot-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 0.76rem;
+    }
+
+    .slot-badge {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .slot-status {
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 3px 10px;
+      border-radius: 999px;
+    }
+
     .slot-card h3 {
-      font-size: 1.15rem;
+      font-size: 1.18rem;
+      font-weight: 600;
       margin-bottom: 8px;
     }
 
     .slot-card p {
-      font-size: 0.88rem;
-      color: var(--text-dim);
-      line-height: 1.55;
-      margin-bottom: 16px;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.58;
+      margin-bottom: 18px;
     }
 
-    .slot-footer {
+    .slot-bottom {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-top: 12px;
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.07);
+      font-size: 0.8rem;
+      color: var(--text-secondary);
     }
 
-    .slot-link {
-      color: var(--text-main);
+    .launch-btn {
       text-decoration: none;
-      padding: 5px 10px;
-      border-radius: 6px;
-      background: var(--accent-soft);
-      border: 1px solid var(--accent);
-      transition: 0.2s;
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--glass-border);
+      padding: 6px 14px;
+      border-radius: 10px;
+      font-weight: 500;
+      transition: all 0.2s ease;
     }
 
-    .slot-link:hover {
+    .launch-btn:hover {
       background: var(--accent);
-      color: #050608;
-      font-weight: 700;
+      color: #06070a;
+      border-color: var(--accent);
     }
 
-    /* SETTINGS Screen */
-    .settings-list {
+    /* 3. SETTINGS */
+    .settings-stack {
       display: flex;
       flex-direction: column;
-      gap: 18px;
-      max-width: 560px;
+      gap: 14px;
+      max-width: 580px;
     }
 
-    .setting-item {
+    .setting-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 16px 20px;
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--panel-border);
-      border-radius: 12px;
+      padding: 18px 22px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(255, 255, 255, 0.07);
     }
 
-    .setting-info h4 {
+    .setting-text h4 {
       font-size: 0.98rem;
-      margin-bottom: 4px;
+      font-weight: 600;
+      margin-bottom: 3px;
     }
 
-    .setting-info p {
-      font-size: 0.82rem;
-      color: var(--text-dim);
+    .setting-text p {
+      font-size: 0.83rem;
+      color: var(--text-secondary);
     }
 
-    .theme-swatches {
+    .swatches {
       display: flex;
       gap: 10px;
     }
@@ -445,50 +587,42 @@
       width: 26px;
       height: 26px;
       border-radius: 50%;
-      border: 2px solid transparent;
+      border: 2px solid rgba(255, 255, 255, 0.2);
       cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease;
     }
 
     .swatch.active {
       border-color: #ffffff;
-      transform: scale(1.15);
+      transform: scale(1.18);
     }
 
-    .toggle-btn {
-      font-family: var(--font-mono);
-      font-size: 0.8rem;
-      padding: 6px 14px;
-      border-radius: 8px;
-      border: 1px solid var(--accent);
-      background: var(--accent-soft);
-      color: var(--accent);
-      cursor: pointer;
-    }
-
-    /* CREDITS Screen */
-    .credits-box {
+    /* 4. CREDITS */
+    .credits-center {
       text-align: center;
-      max-width: 540px;
+      max-width: 520px;
       margin: 0 auto;
       padding: 12px 0;
     }
 
-    .credits-role {
-      font-family: var(--font-mono);
+    .credit-group {
+      margin-bottom: 22px;
+    }
+
+    .credit-label {
       font-size: 0.76rem;
-      color: var(--accent);
-      letter-spacing: 0.14em;
       text-transform: uppercase;
-      margin-top: 20px;
+      letter-spacing: 0.12em;
+      color: var(--accent);
       margin-bottom: 4px;
     }
 
-    .credits-name {
+    .credit-value {
       font-size: 1.15rem;
       font-weight: 600;
     }
 
-    .comms-links {
+    .contact-pills {
       display: flex;
       justify-content: center;
       flex-wrap: wrap;
@@ -496,43 +630,40 @@
       margin-top: 28px;
     }
 
-    .comms-links a {
+    .contact-pills a {
       text-decoration: none;
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-      color: var(--text-main);
-      padding: 10px 18px;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--panel-border);
-      transition: 0.2s;
+      color: var(--text-primary);
+      font-size: 0.88rem;
+      font-weight: 500;
+      padding: 11px 20px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      transition: all 0.25s var(--ease-spring);
     }
 
-    .comms-links a:hover {
-      border-color: var(--accent);
-      background: var(--accent-soft);
+    .contact-pills a:hover {
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--glass-highlight);
     }
 
-    /* Bottom HUD Controls */
-    .hud-bottom {
+    /* Bottom Footer */
+    .hud-footer {
+      max-width: 1080px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 16px 24px 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 16px 28px;
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      color: var(--text-dim);
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 0.78rem;
+      color: var(--text-muted);
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes panelSlide {
-      from { opacity: 0; transform: scale(0.98); }
-      to { opacity: 1; transform: scale(1); }
+    @keyframes viewReveal {
+      from { opacity: 0; transform: translateY(12px) scale(0.99); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     @media (max-width: 820px) {
@@ -540,10 +671,13 @@
         grid-template-columns: 1fr;
         gap: 32px;
       }
-      .profile-grid {
+      .profile-layout {
         grid-template-columns: 1fr;
       }
-      .hud-bottom {
+      .screen-panel {
+        padding: 24px 20px;
+      }
+      .hud-footer {
         flex-direction: column;
         gap: 6px;
         text-align: center;
@@ -552,209 +686,271 @@
   </style>
 </head>
 <body>
-  <div class="bg-grid" id="bgGrid"></div>
-  <div class="bg-glow"></div>
+  <div class="ambient-canvas" id="ambientCanvas">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+  <div class="noise-overlay"></div>
 
-  <!-- Top HUD -->
-  <header class="hud-top">
-    <div class="hud-status">
-      <span class="status-dot"></span>
-      <span>SYS.ONLINE // ZAKI-BUILD-2026</span>
-    </div>
-    <div class="hud-right">
-      <button class="sound-btn" id="soundToggle">SFX: ON</button>
-    </div>
-  </header>
+  <!-- Floating Glass Header -->
+  <div class="hud-wrapper">
+    <header class="hud-top glass-surface">
+      <div class="hud-brand">
+        <span class="live-dot"></span>
+        <span>JEKUNRL</span>
+      </div>
+      <div class="hud-actions">
+        <button class="pill-btn" id="soundToggle">Sound: On</button>
+      </div>
+    </header>
+  </div>
 
-  <!-- Main Stage -->
+  <!-- Main Interactive Stage -->
   <main class="stage">
     <!-- 0. MAIN MENU -->
     <section class="main-menu-view" id="mainMenu">
-      <div class="game-title-block">
-        <span class="edition">Interactive Portfolio v2.0</span>
-        <h1>JEKUNRL <span>Quest</span></h1>
-        <p class="game-subtitle">
-          Pilih menu di samping untuk menjelajahi profil developer, memuat save-slot proyek aplikasi, atau mengatur tampilan sistem.
+      <div>
+        <div class="eyebrow-pill glass-surface">
+          <span>Interactive Portfolio • Edition 2026</span>
+        </div>
+        <h1 class="hero-title">
+          Zaki’s <span>Digital</span><br>Workspace.
+        </h1>
+        <p class="hero-desc">
+          Pilih menu di samping untuk melihat profil keahlian, membuka save-slot proyek yang sudah berjalan, atau menyesuaikan tampilan antarmuka.
         </p>
       </div>
 
-      <div class="menu-list" id="menuList">
-        <button class="menu-item active" data-target="screen-start">
-          <span><span class="cursor-arrow">▶ </span>START</span>
-          <span class="menu-hint">Profil & Stats</span>
+      <div class="menu-stack" id="menuList">
+        <button class="menu-card-btn glass-surface active" data-target="screen-start">
+          <div class="menu-left">
+            <span class="menu-index">01</span>
+            <span class="menu-label">Start</span>
+          </div>
+          <span class="menu-sub">Profil & Keahlian</span>
         </button>
-        <button class="menu-item" data-target="screen-load">
-          <span><span class="cursor-arrow">▶ </span>LOAD GAME</span>
-          <span class="menu-hint">4 Save Slots</span>
+
+        <button class="menu-card-btn glass-surface" data-target="screen-load">
+          <div class="menu-left">
+            <span class="menu-index">02</span>
+            <span class="menu-label">Load Game</span>
+          </div>
+          <span class="menu-sub">4 Save Slots</span>
         </button>
-        <button class="menu-item" data-target="screen-settings">
-          <span><span class="cursor-arrow">▶ </span>SETTINGS</span>
-          <span class="menu-hint">HUD & Audio</span>
+
+        <button class="menu-card-btn glass-surface" data-target="screen-settings">
+          <div class="menu-left">
+            <span class="menu-index">03</span>
+            <span class="menu-label">Settings</span>
+          </div>
+          <span class="menu-sub">Tema & Audio</span>
         </button>
-        <button class="menu-item" data-target="screen-credits">
-          <span><span class="cursor-arrow">▶ </span>CREDITS</span>
-          <span class="menu-hint">Kontak & Info</span>
+
+        <button class="menu-card-btn glass-surface" data-target="screen-credits">
+          <div class="menu-left">
+            <span class="menu-index">04</span>
+            <span class="menu-label">Credits</span>
+          </div>
+          <span class="menu-sub">Kontak & Info</span>
         </button>
       </div>
     </section>
 
     <!-- 1. START (PLAYER PROFILE) -->
-    <section class="screen-panel" id="screen-start">
-      <div class="panel-header">
-        <span class="panel-title">// PLAYER PROFILE & STATS</span>
-        <button class="btn-back" onclick="goBack()">[ESC] KEMBALI</button>
-      </div>
-      <div class="profile-grid">
-        <div class="char-card">
-          <div class="char-role">CLASS: FULL-STACK & AUTOMATION BUILDER</div>
-          <div class="char-name">Zaki (JEKUNRL)</div>
-          <p class="char-bio">
-            Mengembangkan aplikasi kasir berbasis web, bot otomasi transaksi tanpa server berat, ekstensi browser kustom, serta alur pemrosesan video 60 FPS dengan desain Glass UI minimalis.
-          </p>
-          <div class="char-role">BASE LOCATION: PEKANBARU, ID</div>
+    <section class="screen-panel glass-surface" id="screen-start">
+      <div class="panel-top">
+        <div class="panel-heading">
+          <h2>Player Profile</h2>
+          <p>Ringkasan peran, fokus pengembangan, dan statistik keahlian</p>
         </div>
-        <div class="char-card">
-          <div class="stat-row">
-            <div class="stat-label"><span>WEB DEV (HTML / CSS / JS / SUPABASE)</span><span>92%</span></div>
-            <div class="stat-bar"><div class="stat-fill" style="width: 92%"></div></div>
+        <button class="btn-back" onclick="goBack()">← Kembali</button>
+      </div>
+
+      <div class="profile-layout">
+        <div class="inner-glass">
+          <span class="role-tag">Web & Automation Developer</span>
+          <div class="player-name">Zaki (JEKUNRL)</div>
+          <p class="player-bio">
+            Membangun aplikasi web kasir, bot otomasi transaksi tanpa server berat, ekstensi browser kustom, serta alur pemrosesan video 60 FPS dengan desain minimalis yang fungsional.
+          </p>
+          <div class="meta-chips">
+            <span class="chip">Pekanbaru, Indonesia</span>
+            <span class="chip">Glass UI Design</span>
+            <span class="chip">Serverless Systems</span>
           </div>
-          <div class="stat-row">
-            <div class="stat-label"><span>BOT AUTOMATION (WORKERS / D1 / NODE.JS)</span><span>95%</span></div>
-            <div class="stat-bar"><div class="stat-fill" style="width: 95%"></div></div>
+        </div>
+
+        <div class="inner-glass">
+          <div class="skill-item">
+            <div class="skill-head"><span>Frontend & Web Apps</span><span>92%</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width: 92%"></div></div>
           </div>
-          <div class="stat-row">
-            <div class="stat-label"><span>UI/UX GLASSMORPHISM DESIGN</span><span>88%</span></div>
-            <div class="stat-bar"><div class="stat-fill" style="width: 88%"></div></div>
+          <div class="skill-item">
+            <div class="skill-head"><span>Bot Automation (Workers, D1, Node.js)</span><span>95%</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width: 95%"></div></div>
           </div>
-          <div class="stat-row">
-            <div class="stat-label"><span>MEDIA & FFMPEG ENCODING (60 FPS)</span><span>90%</span></div>
-            <div class="stat-bar"><div class="stat-fill" style="width: 90%"></div></div>
+          <div class="skill-item">
+            <div class="skill-head"><span>UI/UX & Glassmorphism Styling</span><span>90%</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width: 90%"></div></div>
+          </div>
+          <div class="skill-item">
+            <div class="skill-head"><span>Video & FFmpeg 60 FPS Workflow</span><span>88%</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width: 88%"></div></div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 2. LOAD GAME (PROJECTS) -->
-    <section class="screen-panel" id="screen-load">
-      <div class="panel-header">
-        <span class="panel-title">// LOAD PROJECT SAVE SLOTS</span>
-        <button class="btn-back" onclick="goBack()">[ESC] KEMBALI</button>
+    <!-- 2. LOAD GAME (SAVE SLOTS) -->
+    <section class="screen-panel glass-surface" id="screen-load">
+      <div class="panel-top">
+        <div class="panel-heading">
+          <h2>Load Project</h2>
+          <p>Pilih save-slot untuk meninjau proyek yang telah dibangun</p>
+        </div>
+        <button class="btn-back" onclick="goBack()">← Kembali</button>
       </div>
-      <div class="save-slots">
-        <div class="slot-card">
+
+      <div class="slots-grid">
+        <article class="slot-card">
           <div>
-            <div class="slot-meta"><span>SLOT 01 // WEB APP</span><span>STATUS: LIVE</span></div>
+            <div class="slot-header">
+              <span class="slot-badge">Save Slot 01</span>
+              <span class="slot-status">Live</span>
+            </div>
             <h3>JEKUNRL POS</h3>
-            <p>Sistem kasir multi-peran (Admin & Kasir) berdesain Glass UI dengan pembayaran Tunai/QRIS, struk digital, dan laporan harian.</p>
+            <p>Aplikasi kasir multi-peran (Admin & Kasir) dengan pembayaran Tunai dan QRIS, struk digital, serta laporan ringkasan harian.</p>
           </div>
-          <div class="slot-footer">
+          <div class="slot-bottom">
             <span>Supabase • Netlify</span>
-            <a href="https://jekunrl.netlify.app/" target="_blank" rel="noopener" class="slot-link">LAUNCH ↗</a>
+            <a href="https://jekunrl.netlify.app/" target="_blank" rel="noopener" class="launch-btn">Buka App ↗</a>
           </div>
-        </div>
+        </article>
 
-        <div class="slot-card">
+        <article class="slot-card">
           <div>
-            <div class="slot-meta"><span>SLOT 02 // SERVERLESS BOT</span><span>STATUS: ACTIVE</span></div>
+            <div class="slot-header">
+              <span class="slot-badge">Save Slot 02</span>
+              <span class="slot-status">Active</span>
+            </div>
             <h3>JEKUNRL Digital Store</h3>
-            <p>Bot toko digital otomatis di Telegram dengan stok real-time, verifikasi bukti pembayaran, dan database SQL edge.</p>
+            <p>Bot toko digital otomatis di Telegram dengan manajemen stok real-time, verifikasi bukti transfer, dan database SQL edge.</p>
           </div>
-          <div class="slot-footer">
-            <span>CF Workers • D1</span>
-            <a href="#screen-credits" onclick="openScreen('screen-credits')" class="slot-link">INSPECT</a>
+          <div class="slot-bottom">
+            <span>Cloudflare Workers • D1</span>
+            <a href="#screen-credits" onclick="openScreen('screen-credits')" class="launch-btn">Info</a>
           </div>
-        </div>
+        </article>
 
-        <div class="slot-card">
+        <article class="slot-card">
           <div>
-            <div class="slot-meta"><span>SLOT 03 // EXTENSION</span><span>STATUS: V2</span></div>
+            <div class="slot-header">
+              <span class="slot-badge">Save Slot 03</span>
+              <span class="slot-status">v2.0</span>
+            </div>
             <h3>JEKUNRL × TikTok</h3>
             <p>Ekstensi browser kustom untuk kreator dengan integrasi verifikasi akun, tema gelap minimalis, dan alur kerja cepat.</p>
           </div>
-          <div class="slot-footer">
-            <span>JS • Chrome API</span>
-            <a href="#screen-credits" onclick="openScreen('screen-credits')" class="slot-link">INSPECT</a>
+          <div class="slot-bottom">
+            <span>JavaScript • Chrome API</span>
+            <a href="#screen-credits" onclick="openScreen('screen-credits')" class="launch-btn">Info</a>
           </div>
-        </div>
+        </article>
 
-        <div class="slot-card">
+        <article class="slot-card">
           <div>
-            <div class="slot-meta"><span>SLOT 04 // MEDIA BOT</span><span>STATUS: READY</span></div>
+            <div class="slot-header">
+              <span class="slot-badge">Save Slot 04</span>
+              <span class="slot-status">Ready</span>
+            </div>
             <h3>WA Story HD Processor</h3>
-            <p>Bot pemrosesan video otomatis menggunakan FFmpeg untuk menjaga ketajaman resolusi dan kelancaran 60 FPS saat diunggah.</p>
+            <p>Bot pemrosesan video otomatis berbasis Node.js dan FFmpeg untuk menjaga ketajaman resolusi dan kelancaran 60 FPS.</p>
           </div>
-          <div class="slot-footer">
+          <div class="slot-bottom">
             <span>Node.js • FFmpeg</span>
-            <a href="#screen-credits" onclick="openScreen('screen-credits')" class="slot-link">INSPECT</a>
+            <a href="#screen-credits" onclick="openScreen('screen-credits')" class="launch-btn">Info</a>
           </div>
-        </div>
+        </article>
       </div>
     </section>
 
     <!-- 3. SETTINGS -->
-    <section class="screen-panel" id="screen-settings">
-      <div class="panel-header">
-        <span class="panel-title">// SYSTEM SETTINGS</span>
-        <button class="btn-back" onclick="goBack()">[ESC] KEMBALI</button>
+    <section class="screen-panel glass-surface" id="screen-settings">
+      <div class="panel-top">
+        <div class="panel-heading">
+          <h2>Settings</h2>
+          <p>Sesuaikan pencahayaan kaca, warna aksen, dan efek suara</p>
+        </div>
+        <button class="btn-back" onclick="goBack()">← Kembali</button>
       </div>
-      <div class="settings-list">
-        <div class="setting-item">
-          <div class="setting-info">
-            <h4>Warna Aksen HUD</h4>
-            <p>Ubah warna sorotan antarmuka game</p>
+
+      <div class="settings-stack">
+        <div class="setting-row">
+          <div class="setting-text">
+            <h4>Tint Cahaya & Aksen</h4>
+            <p>Pilih nuansa warna yang memantul di balik panel kaca</p>
           </div>
-          <div class="theme-swatches">
-            <button class="swatch active" style="background:#38bdf8" onclick="setAccent('#38bdf8', 'rgba(56, 189, 248, 0.14)', 'rgba(56, 189, 248, 0.4)', this)" title="Cyber Cyan"></button>
-            <button class="swatch" style="background:#10b981" onclick="setAccent('#10b981', 'rgba(16, 185, 129, 0.14)', 'rgba(16, 185, 129, 0.4)', this)" title="Emerald Matrix"></button>
-            <button class="swatch" style="background:#f59e0b" onclick="setAccent('#f59e0b', 'rgba(245, 158, 11, 0.14)', 'rgba(245, 158, 11, 0.4)', this)" title="Amber Tactical"></button>
+          <div class="swatches">
+            <button class="swatch active" style="background:#38bdf8" onclick="setTheme('#38bdf8', 'rgba(56, 189, 248, 0.16)', 'rgba(56, 189, 248, 0.22)', 'rgba(99, 102, 241, 0.18)', this)" title="Glacier Cyan"></button>
+            <button class="swatch" style="background:#e2e8f0" onclick="setTheme('#f8fafc', 'rgba(255, 255, 255, 0.12)', 'rgba(255, 255, 255, 0.15)', 'rgba(148, 163, 184, 0.14)', this)" title="Pure Frost"></button>
+            <button class="swatch" style="background:#34d399" onclick="setTheme('#34d399', 'rgba(52, 211, 153, 0.16)', 'rgba(52, 211, 153, 0.22)', 'rgba(16, 185, 129, 0.16)', this)" title="Emerald Glass"></button>
+            <button class="swatch" style="background:#a78bfa" onclick="setTheme('#a78bfa', 'rgba(167, 139, 250, 0.16)', 'rgba(167, 139, 250, 0.24)', 'rgba(236, 72, 153, 0.14)', this)" title="Violet Mist"></button>
           </div>
         </div>
 
-        <div class="setting-item">
-          <div class="setting-info">
-            <h4>Grid Latar Belakang</h4>
-            <p>Tampilkan atau sembunyikan garis koordinat layar</p>
+        <div class="setting-row">
+          <div class="setting-text">
+            <h4>Ambient Light Orbs</h4>
+            <p>Intensitas cahaya lembut di belakang lapisan kaca</p>
           </div>
-          <button class="toggle-btn" id="gridToggle" onclick="toggleGrid()">ON</button>
+          <button class="pill-btn" id="orbToggle" onclick="toggleOrbs()">High</button>
         </div>
 
-        <div class="setting-item">
-          <div class="setting-info">
-            <h4>Efek Suara Menu (SFX)</h4>
-            <p>Suara navigasi sintetis saat memilih opsi</p>
+        <div class="setting-row">
+          <div class="setting-text">
+            <h4>Efek Suara Navigasi</h4>
+            <p>Umpan balik suara halus saat memilih menu</p>
           </div>
-          <button class="toggle-btn" id="sfxSettingBtn" onclick="toggleSound()">ON</button>
+          <button class="pill-btn" id="sfxSettingBtn" onclick="toggleSound()">On</button>
         </div>
       </div>
     </section>
 
     <!-- 4. CREDITS -->
-    <section class="screen-panel" id="screen-credits">
-      <div class="panel-header">
-        <span class="panel-title">// CREDITS & COMMS</span>
-        <button class="btn-back" onclick="goBack()">[ESC] KEMBALI</button>
+    <section class="screen-panel glass-surface" id="screen-credits">
+      <div class="panel-top">
+        <div class="panel-heading">
+          <h2>Credits & Contact</h2>
+          <p>Informasi pengembang dan saluran komunikasi langsung</p>
+        </div>
+        <button class="btn-back" onclick="goBack()">← Kembali</button>
       </div>
-      <div class="credits-box">
-        <div class="credits-role">DESIGN & DEVELOPMENT</div>
-        <div class="credits-name">Zaki — JEKUNRL</div>
 
-        <div class="credits-role">ENGINE & ARCHITECTURE</div>
-        <div class="credits-name">HTML5 • CSS3 Glass UI • Vanilla JS • Web Audio API</div>
+      <div class="credits-center">
+        <div class="credit-group">
+          <div class="credit-label">Created & Designed By</div>
+          <div class="credit-value">Zaki — JEKUNRL</div>
+        </div>
 
-        <div class="credits-role">DIRECT COMMUNICATION</div>
-        <div class="comms-links">
-          <a href="https://t.me/username_kamu" target="_blank" rel="noopener">TELEGRAM ↗</a>
-          <a href="https://github.com/username_kamu" target="_blank" rel="noopener">GITHUB ↗</a>
-          <a href="mailto:emailkamu@example.com">EMAIL ↗</a>
+        <div class="credit-group">
+          <div class="credit-label">Interface & Stack</div>
+          <div class="credit-value">Frosted Glassmorphism • HTML5 • Vanilla JS</div>
+        </div>
+
+        <div class="contact-pills">
+          <a href="https://t.me/username_kamu" target="_blank" rel="noopener">Telegram ↗</a>
+          <a href="https://github.com/username_kamu" target="_blank" rel="noopener">GitHub ↗</a>
+          <a href="mailto:emailkamu@example.com">Email ↗</a>
         </div>
       </div>
     </section>
   </main>
 
-  <!-- Bottom HUD -->
-  <footer class="hud-bottom">
-    <span>[↑/↓] NAVIGASI &nbsp; [ENTER] PILIH &nbsp; [ESC] KEMBALI</span>
-    <span>© 2026 JEKUNRL // ALL RIGHTS RESERVED</span>
+  <!-- Subtle Bottom Hint -->
+  <footer class="hud-footer">
+    <span>Gunakan ↑/↓, Enter, dan Esc untuk navigasi cepat</span>
+    <span>© 2026 Zaki — JEKUNRL</span>
   </footer>
 
   <script>
@@ -762,12 +958,23 @@
     let audioCtx = null;
     let currentIndex = 0;
 
-    const menuItems = Array.from(document.querySelectorAll('.menu-item'));
+    const menuItems = Array.from(document.querySelectorAll('.menu-card-btn'));
     const mainMenu = document.getElementById('mainMenu');
     const panels = Array.from(document.querySelectorAll('.screen-panel'));
 
-    // Synthesized Retro-Modern UI Sound
-    function playBeep(freq = 520, duration = 0.06, type = 'triangle') {
+    // Mouse Spotlight Tracking on Glass Buttons
+    menuItems.forEach((card) => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        card.style.setProperty('--mx', `${x}%`);
+        card.style.setProperty('--my', `${y}%`);
+      });
+    });
+
+    // Soft Glass Click Sound
+    function playTone(freq = 520, duration = 0.055) {
       if (!soundEnabled) return;
       try {
         if (!audioCtx) {
@@ -775,9 +982,9 @@
         }
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        osc.type = type;
+        osc.type = 'sine';
         osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.045, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
@@ -787,14 +994,12 @@
     }
 
     function updateMenuSelection(index) {
-      menuItems.forEach((btn, i) => {
-        btn.classList.toggle('active', i === index);
-      });
+      menuItems.forEach((btn, i) => btn.classList.toggle('active', i === index));
       currentIndex = index;
     }
 
     function openScreen(screenId) {
-      playBeep(740, 0.09, 'sine');
+      playTone(680, 0.08);
       mainMenu.style.display = 'none';
       panels.forEach(p => p.classList.remove('active'));
       const target = document.getElementById(screenId);
@@ -802,7 +1007,7 @@
     }
 
     function goBack() {
-      playBeep(360, 0.08, 'sine');
+      playTone(380, 0.07);
       panels.forEach(p => p.classList.remove('active'));
       mainMenu.style.display = 'grid';
     }
@@ -811,7 +1016,7 @@
       btn.addEventListener('mouseenter', () => {
         if (currentIndex !== idx) {
           updateMenuSelection(idx);
-          playBeep(440, 0.04, 'triangle');
+          playTone(460, 0.035);
         }
       });
       btn.addEventListener('click', () => {
@@ -820,20 +1025,17 @@
       });
     });
 
-    // Keyboard Navigation
     document.addEventListener('keydown', (e) => {
       const isMenuVisible = mainMenu.style.display !== 'none';
       if (isMenuVisible) {
         if (e.key === 'ArrowDown') {
           e.preventDefault();
-          const next = (currentIndex + 1) % menuItems.length;
-          updateMenuSelection(next);
-          playBeep(440, 0.04);
+          updateMenuSelection((currentIndex + 1) % menuItems.length);
+          playTone(460, 0.035);
         } else if (e.key === 'ArrowUp') {
           e.preventDefault();
-          const prev = (currentIndex - 1 + menuItems.length) % menuItems.length;
-          updateMenuSelection(prev);
-          playBeep(440, 0.04);
+          updateMenuSelection((currentIndex - 1 + menuItems.length) % menuItems.length);
+          playTone(460, 0.035);
         } else if (e.key === 'Enter') {
           e.preventDefault();
           openScreen(menuItems[currentIndex].dataset.target);
@@ -843,29 +1045,30 @@
       }
     });
 
-    // Settings Functions
-    function setAccent(hex, soft, glow, el) {
-      playBeep(620, 0.07);
-      document.documentElement.style.setProperty('--accent', hex);
-      document.documentElement.style.setProperty('--accent-soft', soft);
-      document.documentElement.style.setProperty('--accent-glow', glow);
+    function setTheme(accent, tint, orb1, orb2, el) {
+      playTone(600, 0.06);
+      const root = document.documentElement.style;
+      root.setProperty('--accent', accent);
+      root.setProperty('--accent-tint', tint);
+      root.setProperty('--orb-1', orb1);
+      root.setProperty('--orb-2', orb2);
       document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
       el.classList.add('active');
     }
 
-    function toggleGrid() {
-      playBeep(520, 0.06);
-      const grid = document.getElementById('bgGrid');
-      const btn = document.getElementById('gridToggle');
-      const isHidden = grid.classList.toggle('hidden');
-      btn.textContent = isHidden ? 'OFF' : 'ON';
+    function toggleOrbs() {
+      playTone(500, 0.05);
+      const canvas = document.getElementById('ambientCanvas');
+      const btn = document.getElementById('orbToggle');
+      const isDimmed = canvas.classList.toggle('dimmed');
+      btn.textContent = isDimmed ? 'Low' : 'High';
     }
 
     function toggleSound() {
       soundEnabled = !soundEnabled;
-      document.getElementById('soundToggle').textContent = soundEnabled ? 'SFX: ON' : 'SFX: OFF';
-      document.getElementById('sfxSettingBtn').textContent = soundEnabled ? 'ON' : 'OFF';
-      if (soundEnabled) playBeep(680, 0.08);
+      document.getElementById('soundToggle').textContent = soundEnabled ? 'Sound: On' : 'Sound: Off';
+      document.getElementById('sfxSettingBtn').textContent = soundEnabled ? 'On' : 'Off';
+      if (soundEnabled) playTone(640, 0.07);
     }
 
     document.getElementById('soundToggle').addEventListener('click', toggleSound);
